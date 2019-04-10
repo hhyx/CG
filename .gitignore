@@ -1,0 +1,10 @@
+/.vs/
+/Debug/
+CG.sln
+/CG/Debug/
+/CG/CG.APS
+/CG/CG.rc
+/CG/CG.vcxproj
+/CG/CG.vcxproj.filters
+/CG/CG.vcxproj.user
+/CG/imgui.ini
