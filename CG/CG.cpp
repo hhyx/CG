@@ -3,13 +3,27 @@
 #include <iostream>
 #include "HW3.h"
 #include "HW4.h"
+#include "HW5.h"
+#include "Camera.h"
 using namespace std;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
+
+// camera
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = screenWidth / 2.0f;
+float lastY = screenHeight / 2.0f;
+bool firstMouse = true;
+
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
 
 int main()
 {
@@ -28,6 +42,9 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	
 
 	// 初始化GLAD
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -38,9 +55,6 @@ int main()
 
 	// 视口
 	glViewport(0, 0, screenWidth, screenHeight);
-
-	// 当调整窗口同时调整视口
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// 创建并绑定ImGui
 	ImGui::CreateContext();
@@ -73,9 +87,22 @@ int main()
 	bool scaling = false;
 	HW4 hw4;
 
+	bool hw5Flag = false;
+	bool cube = false;
+	bool orthographic = false;
+	bool perspective = false;
+	float left = -2, right = 1, bottom = -1, top = 1.5, znear = -30, zfar = 30;
+	bool viewChange = false;
+	bool cameraFlag = false;
+	HW5 hw5;
+
 	// 渲染循环
 	while (!glfwWindowShouldClose(window))
 	{
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		processInput(window);
 		glfwPollEvents();
 
@@ -84,7 +111,7 @@ int main()
 		ImGui::NewFrame();
 
 		{
-			if (!hw4Flag && !hw3Flag)
+			if (!hw4Flag && !hw3Flag && !hw5Flag)
 			{
 				choose = -1;
 			}
@@ -92,15 +119,23 @@ int main()
 			ImGui::Begin("HW");
 			ImGui::RadioButton("HW3", &choose, 0);
 			ImGui::RadioButton("HW4", &choose, 1);
+			ImGui::RadioButton("HW5", &choose, 2);
 
 			switch (choose)
 			{
 			case 0:
 				hw3Flag = true;
 				hw4Flag = false;
+				hw5Flag = false;
 				break;
 			case 1:
 				hw4Flag = true;
+				hw3Flag = false;
+				hw5Flag = false;
+				break;
+			case 2:
+				hw5Flag = true;
+				hw4Flag = false;
 				hw3Flag = false;
 				break;
 			default:
@@ -136,6 +171,24 @@ int main()
 			ImGui::Checkbox("Translation", &translation);
 			ImGui::Checkbox("Rotation", &rotation);
 			ImGui::Checkbox("Scaling", &scaling);
+			ImGui::End();
+		}
+
+		if (hw5Flag)
+		{
+			shaderProgram = hw5.getShaderProgram();
+			ImGui::Begin("HW5", &hw5Flag);
+			ImGui::Checkbox("cube", &cube);
+			ImGui::Checkbox("orthographic", &orthographic);
+			ImGui::Checkbox("perspective", &perspective);
+			ImGui::SliderFloat("left", &left, -3.0, 3);
+			ImGui::SliderFloat("right", &right, -3.0, 3);
+			ImGui::SliderFloat("bottom", &bottom, -3.0, 3);
+			ImGui::SliderFloat("top", &top, -3.0, 3);
+			ImGui::SliderFloat("near", &znear, -50, 50);
+			ImGui::SliderFloat("far", &zfar, -50, 50);
+			ImGui::Checkbox("viewChange", &viewChange);
+			ImGui::Checkbox("camera", &cameraFlag);
 			ImGui::End();
 		}
 
@@ -193,6 +246,34 @@ int main()
 			}
 		}
 
+		if (hw5Flag)
+		{
+			if (cube)
+			{
+				hw5.cube();
+			}
+			if (orthographic)
+			{
+				hw5.projection(left, right, bottom, top, znear, zfar, true);
+			}
+			if (perspective)
+			{
+				hw5.projection(left, right, bottom, top, znear, zfar, false);
+			}
+			if (viewChange)
+			{
+				hw5.viewChange();
+			}
+			if (cameraFlag)
+			{
+				glfwSetCursorPosCallback(window, mouse_callback);
+				glfwSetScrollCallback(window, scroll_callback);
+				// tell GLFW to capture our mouse
+				//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				hw5.useCamera(camera);
+			}
+		}
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -202,12 +283,45 @@ int main()
 	return 0;
 }
 
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
+// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+// glfw: whenever the mouse moves, this callback is called
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
+// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
 }
