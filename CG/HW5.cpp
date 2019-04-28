@@ -147,7 +147,6 @@ void HW5::cube()
 {
 	glBindVertexArray(VAO);
 
-	glBindVertexArray(VAO);
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	model = glm::scale(model, glm::vec3(0.25, 0.25, 0.25));
@@ -172,7 +171,6 @@ void HW5::projection(float left, float right, float bottom, float top, float zne
 {
 	glBindVertexArray(VAO);
 
-	glBindVertexArray(VAO);
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	model = glm::scale(model, glm::vec3(0.25, 0.25, 0.25));
@@ -202,12 +200,8 @@ void HW5::viewChange()
 {
 	glBindVertexArray(VAO);
 
-	glBindVertexArray(VAO);
 	glm::mat4 model = glm::mat4(1.0f);
-	//model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	model = glm::scale(model, glm::vec3(0.25, 0.25, 0.25));
-	//model = glm::translate(model, glm::vec3(0.0f, 0.0f, -5.0f));
-	//model = glm::translate(model, glm::vec3(-1.5, 0.5f, -1.5f));
 	glm::mat4 view = glm::mat4(1.0f);
 	float radius = 5.0f;
 	float camX = float(sin(glfwGetTime()) * radius);
@@ -225,7 +219,6 @@ void HW5::viewChange()
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-	glBindVertexArray(VAO);
 	model = glm::mat4(1.0f);
 	model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	model = glm::scale(model, glm::vec3(0.25, 0.25, 0.25));
@@ -247,7 +240,6 @@ void HW5::useCamera(Camera camera)
 {
 	glBindVertexArray(VAO);
 
-	glBindVertexArray(VAO);
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::scale(model, glm::vec3(0.25, 0.25, 0.25));
 	glm::mat4 view = glm::mat4(1.0f);
@@ -264,7 +256,6 @@ void HW5::useCamera(Camera camera)
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-	glBindVertexArray(VAO);
 
 	model = glm::mat4(1.0f);
 	model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 1.0f, 1.0f));

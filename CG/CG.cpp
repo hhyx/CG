@@ -4,6 +4,7 @@
 #include "HW3.h"
 #include "HW4.h"
 #include "HW5.h"
+#include "HW6.h"
 #include "Camera.h"
 using namespace std;
 
@@ -96,6 +97,17 @@ int main()
 	bool cameraFlag = false;
 	HW5 hw5;
 
+	bool hw6Flag = false;
+	bool phong = false;
+	bool gouraud = false;
+	bool dynamic = false;
+	float ambientStrength = 0.1;
+	float diffuseStrength = 0.0;
+	float specularStrength = 0.5;
+	int Reflectivity = 32;
+	float x = 0.0f;
+	HW6 hw6;
+
 	// ‰÷»æ—≠ª∑
 	while (!glfwWindowShouldClose(window))
 	{
@@ -111,7 +123,7 @@ int main()
 		ImGui::NewFrame();
 
 		{
-			if (!hw4Flag && !hw3Flag && !hw5Flag)
+			if (!hw4Flag && !hw3Flag && !hw5Flag && !hw6Flag)
 			{
 				choose = -1;
 			}
@@ -120,6 +132,7 @@ int main()
 			ImGui::RadioButton("HW3", &choose, 0);
 			ImGui::RadioButton("HW4", &choose, 1);
 			ImGui::RadioButton("HW5", &choose, 2);
+			ImGui::RadioButton("HW6", &choose, 3);
 
 			switch (choose)
 			{
@@ -127,14 +140,23 @@ int main()
 				hw3Flag = true;
 				hw4Flag = false;
 				hw5Flag = false;
+				hw6Flag = false;
 				break;
 			case 1:
 				hw4Flag = true;
 				hw3Flag = false;
 				hw5Flag = false;
+				hw6Flag = false;
 				break;
 			case 2:
 				hw5Flag = true;
+				hw4Flag = false;
+				hw3Flag = false;
+				hw6Flag = false;
+				break;
+			case 3:
+				hw6Flag = true;
+				hw5Flag = false;
 				hw4Flag = false;
 				hw3Flag = false;
 				break;
@@ -190,6 +212,28 @@ int main()
 			ImGui::Checkbox("viewChange", &viewChange);
 			ImGui::Checkbox("camera", &cameraFlag);
 			ImGui::End();
+		}
+
+		if (hw6Flag) 
+		{
+			ImGui::Begin("HW6", &hw6Flag);
+			ImGui::Checkbox("Phong Shading", &phong);
+			ImGui::Checkbox("Gourud Shading", &gouraud);
+			ImGui::Checkbox("Dynamic", &dynamic);
+			ImGui::SliderFloat("ambientStrength", &ambientStrength, 0.0f, 1.0f);
+			ImGui::SliderFloat("diffuseStrength", &diffuseStrength, 0.0f, 1.0f);
+			ImGui::SliderFloat("specularStrength", &specularStrength, 0.0, 1.0f);
+			ImGui::SliderInt("Reflectivity", &Reflectivity, 1, 256);
+			ImGui::SliderFloat("x", &x, -5.0f, 1.0f);
+			ImGui::End();
+			if (phong)
+			{
+				shaderProgram = hw6.getShaderProgramPhone();
+			}
+			else if (gouraud)
+			{
+				shaderProgram = hw6.getShaderProgramGouraud();
+			}
 		}
 
 		glUseProgram(shaderProgram);
@@ -273,6 +317,23 @@ int main()
 				hw5.useCamera(camera);
 			}
 		}
+
+		if (hw6Flag)
+		{
+			//glfwSetCursorPosCallback(window, mouse_callback);
+			glfwSetScrollCallback(window, scroll_callback);
+
+			if (phong)
+			{
+				hw6.Phong(camera, dynamic, ambientStrength, diffuseStrength, specularStrength, Reflectivity, x);
+			}
+			
+			if (gouraud)
+			{
+				hw6.Gouraud(camera, dynamic, ambientStrength, diffuseStrength, specularStrength, Reflectivity, x);
+			}
+		}
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

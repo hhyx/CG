@@ -23,6 +23,7 @@ public:
 	void ProcessMouseScroll(float yoffset);
 	void updateCameraVectors();
 	float getZoom();
+	glm::vec3 getPosition();
 
 private:
 	glm::vec3 Position;
