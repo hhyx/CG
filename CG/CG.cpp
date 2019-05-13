@@ -1,11 +1,13 @@
 #include <glad/glad.h> 
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include "HW3.h"
-#include "HW4.h"
-#include "HW5.h"
-#include "HW6.h"
+#include "HW3/HW3.h"
+#include "HW4/HW4.h"
+#include "HW5/HW5.h"
+#include "HW6/HW6.h"
+#include "HW7/HW7.h"
 #include "Camera.h"
+#include "shader.h"
 using namespace std;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -26,8 +28,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
-int main()
-{
+int main() {
 	// 实例化GLFW窗口
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -36,8 +37,7 @@ int main()
 
 	// 创建窗口对象
 	GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "CG", NULL, NULL);
-	if (window == NULL)
-	{
+	if (window == NULL)	{
 		cout << "Failed to create GLFW window" << endl;
 		glfwTerminate();
 		return -1;
@@ -45,11 +45,10 @@ int main()
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	
+
 
 	// 初始化GLAD
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		cout << "Failed to initialize GLAD" << endl;
 		return -1;
 	}
@@ -63,7 +62,7 @@ int main()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui::StyleColorsClassic();
 	ImGui_ImplOpenGL3_Init("#version 330");
-	
+
 	// 链接着色器
 	unsigned int shaderProgram;
 	shaderProgram = glCreateProgram();
@@ -108,9 +107,13 @@ int main()
 	float x = 0.0f;
 	HW6 hw6;
 
+	bool hw7Flag = false;
+	bool shadow = false;
+	float hw7x = -2.0f, hw7y = 4.0f, hw7z = -1.0f;
+	HW7 hw7 = HW7(screenWidth, screenHeight);
+
 	// 渲染循环
-	while (!glfwWindowShouldClose(window))
-	{
+	while (!glfwWindowShouldClose(window)) {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -123,8 +126,7 @@ int main()
 		ImGui::NewFrame();
 
 		{
-			if (!hw4Flag && !hw3Flag && !hw5Flag && !hw6Flag)
-			{
+			if (!hw4Flag && !hw3Flag && !hw5Flag && !hw6Flag && !hw7Flag) {
 				choose = -1;
 			}
 
@@ -133,42 +135,37 @@ int main()
 			ImGui::RadioButton("HW4", &choose, 1);
 			ImGui::RadioButton("HW5", &choose, 2);
 			ImGui::RadioButton("HW6", &choose, 3);
+			ImGui::RadioButton("HW7", &choose, 4);
 
-			switch (choose)
-			{
+			switch (choose) {
 			case 0:
 				hw3Flag = true;
-				hw4Flag = false;
-				hw5Flag = false;
-				hw6Flag = false;
+				hw4Flag = hw5Flag = hw6Flag = hw7Flag = false;
 				break;
 			case 1:
 				hw4Flag = true;
-				hw3Flag = false;
-				hw5Flag = false;
-				hw6Flag = false;
+				hw3Flag = hw5Flag = hw6Flag = hw7Flag = false;
 				break;
 			case 2:
 				hw5Flag = true;
-				hw4Flag = false;
-				hw3Flag = false;
-				hw6Flag = false;
+				hw3Flag = hw4Flag = hw6Flag = hw7Flag = false;
 				break;
 			case 3:
 				hw6Flag = true;
-				hw5Flag = false;
-				hw4Flag = false;
-				hw3Flag = false;
+				hw3Flag = hw4Flag = hw5Flag = hw7Flag = false;
+				break;
+			case 4:
+				hw7Flag = true;
+				hw3Flag = hw4Flag = hw5Flag = hw6Flag = false;
 				break;
 			default:
 				break;
 			}
-			
+
 			ImGui::End();
 		}
 
-		if (hw3Flag)
-		{	
+		if (hw3Flag) {
 			shaderProgram = hw3.getShaderProgram();
 			ImGui::Begin("HW3", &hw3Flag);
 			ImGui::Checkbox("no fill triangle", &drawPoint);
@@ -184,8 +181,7 @@ int main()
 			ImGui::End();
 		}
 
-		if (hw4Flag)
-		{
+		if (hw4Flag) {
 			shaderProgram = hw4.getShaderProgram();
 			ImGui::Begin("HW4", &hw4Flag);
 			ImGui::Checkbox("DepthTest", &depthTest);
@@ -196,8 +192,7 @@ int main()
 			ImGui::End();
 		}
 
-		if (hw5Flag)
-		{
+		if (hw5Flag) {
 			shaderProgram = hw5.getShaderProgram();
 			ImGui::Begin("HW5", &hw5Flag);
 			ImGui::Checkbox("cube", &cube);
@@ -214,8 +209,7 @@ int main()
 			ImGui::End();
 		}
 
-		if (hw6Flag) 
-		{
+		if (hw6Flag) {
 			ImGui::Begin("HW6", &hw6Flag);
 			ImGui::Checkbox("Phong Shading", &phong);
 			ImGui::Checkbox("Gourud Shading", &gouraud);
@@ -236,8 +230,17 @@ int main()
 			}
 		}
 
+		if (hw7Flag) {
+			shaderProgram = hw7.getShaderProgram();
+			ImGui::Begin("HW7", &hw7Flag);
+			ImGui::Checkbox("Shadow", &shadow);
+			ImGui::SliderFloat("x", &hw7x, -10.0f, 10.0f);
+			ImGui::SliderFloat("y", &hw7y, -10.0f, 10.0f);
+			ImGui::SliderFloat("z", &hw7z, -10.0f, 10.0f);
+			ImGui::End();
+		}
+
 		glUseProgram(shaderProgram);
-		
 		// Rendering
 		ImGui::Render();
 		int display_w, display_h;
@@ -246,70 +249,53 @@ int main()
 		glViewport(0, 0, display_w, display_h);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		if (hw3Flag)
-		{
-			if (drawPoint)
-			{
+		if (hw3Flag) {
+			if (drawPoint) {
 				hw3.drawPoints(x1, y1, x2, y2);
 				hw3.drawPoints(x2, y2, x3, y3);
 				hw3.drawPoints(x3, y3, x1, y1);
 			}
-			if (drawCircle)
-			{
+			if (drawCircle)	{
 				hw3.drawCircles(40, 30, radius);
 			}
-			if (drawTriangle)
-			{
+			if (drawTriangle) {
 				hw3.drawTriangles(x1, y1, x2, y2, x3, y3);
 			}
 		}
 
-		if (hw4Flag)
-		{
-			if (depthTest)
-			{
+		if (hw4Flag) {
+			if (depthTest) {
 				hw4.StartDepthTest();
 			}
-			if (animation)
-			{
+			if (animation) {
 				hw4.Animation();
 			}
-			if (translation)
-			{
+			if (translation) {
 				hw4.Translation();
 			}
-			if (rotation)
-			{
+			if (rotation) {
 				hw4.Rotation();
 			}
-			if (scaling)
-			{
+			if (scaling) {
 				hw4.Scaling();
 			}
 		}
 
-		if (hw5Flag)
-		{
-			if (cube)
-			{
+		if (hw5Flag) {
+			if (cube) {
 				hw5.cube();
 			}
-			if (orthographic)
-			{
+			if (orthographic) {
 				hw5.projection(left, right, bottom, top, znear, zfar, true);
 			}
-			if (perspective)
-			{
+			if (perspective) {
 				hw5.projection(left, right, bottom, top, znear, zfar, false);
 			}
-			if (viewChange)
-			{
+			if (viewChange) {
 				hw5.viewChange();
 			}
-			if (cameraFlag)
-			{
+			if (cameraFlag) {
 				glfwSetCursorPosCallback(window, mouse_callback);
 				glfwSetScrollCallback(window, scroll_callback);
 				// tell GLFW to capture our mouse
@@ -318,22 +304,29 @@ int main()
 			}
 		}
 
-		if (hw6Flag)
-		{
+		if (hw6Flag) {
 			//glfwSetCursorPosCallback(window, mouse_callback);
 			glfwSetScrollCallback(window, scroll_callback);
 
-			if (phong)
-			{
+			if (phong) {
 				hw6.Phong(camera, dynamic, ambientStrength, diffuseStrength, specularStrength, Reflectivity, x);
 			}
-			
-			if (gouraud)
-			{
+			if (gouraud) {
 				hw6.Gouraud(camera, dynamic, ambientStrength, diffuseStrength, specularStrength, Reflectivity, x);
 			}
 		}
 
+		if (hw7Flag) {
+			glfwSetCursorPosCallback(window, mouse_callback);
+			glfwSetScrollCallback(window, scroll_callback);
+			//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			if (shadow) {
+				hw7.shadow(camera, hw7x, hw7y, hw7z);
+			}
+		}
+
+		
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -345,13 +338,11 @@ int main()
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-void processInput(GLFWwindow* window)
-{
+void processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -364,8 +355,7 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 // glfw: whenever the mouse moves, this callback is called
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	if (firstMouse)
 	{
 		lastX = xpos;
@@ -382,7 +372,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	camera.ProcessMouseScroll(yoffset);
 }
