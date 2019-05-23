@@ -19,7 +19,7 @@ public:
 	~HW8();
 	void HW8LinkShader();
 	unsigned int getShaderProgram();
-	void drawPoint(vector<pair<float, float> >, int);
+	void drawPoint(vector<pair<float, float> >, float);
 	void drawLine(vector<pair<float, float> >);
 	void Bezier(float x, float y, int, bool);
 	float B(int, int, float);

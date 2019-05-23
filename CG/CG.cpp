@@ -386,8 +386,7 @@ void processInput(GLFWwindow* window) {
 }
 // glfw: whenever the mouse moves, this callback is called
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-	if (firstMouse)
-	{
+	if (firstMouse) {
 		lastX = xpos;
 		lastY = ypos;
 		firstMouse = false;
@@ -410,15 +409,12 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		switch (button) {
 		case GLFW_MOUSE_BUTTON_LEFT:
 			state = 1;
-			//cout << "Mosue left button clicked!" << endl;
 			break;
 		case GLFW_MOUSE_BUTTON_MIDDLE:
 			state = 2;
-			//cout << "Mosue middle button clicked!" << endl;
 			break;
 		case GLFW_MOUSE_BUTTON_RIGHT:
 			state = 3;
-			//cout << "Mosue right button clicked!" << endl;
 			break;
 		default:
 			return;

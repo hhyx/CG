@@ -4,7 +4,6 @@ HW8::HW8() {
 	HW8LinkShader();
 }
 
-
 HW8::~HW8() {
 	
 }
@@ -17,7 +16,7 @@ unsigned int HW8::getShaderProgram() {
 	return shader.ID;
 }
 
-void HW8::drawPoint(vector<pair<float, float> > point, int state) {
+void HW8::drawPoint(vector<pair<float, float> > point, float size) {
 	float* po = new float[point.size() * 3];
 	for (int i = 0; i < point.size(); i++) {
 		po[3 * i] = (point[i].first - 400) / 400.0;
@@ -41,12 +40,7 @@ void HW8::drawPoint(vector<pair<float, float> > point, int state) {
 	glBindVertexArray(0);
 
 	glBindVertexArray(VAO);
-	if (state == 0)
-		glPointSize(1.0f);
-	else if (state == 1)
-		glPointSize(5.0f);
-	else if (state == 2)
-		glPointSize(10.0f);
+	glPointSize(size);
 	glDrawArrays(GL_POINTS, 0, point.size());
 
 	glDeleteVertexArrays(1, &VAO);
@@ -95,7 +89,7 @@ void HW8::Bezier(float x, float y, int state, bool dynamic) {
 			coordinate.pop_back();
 	}
 
-	drawPoint(coordinate, 2);
+	drawPoint(coordinate, 10.0f);
 
 	vector<pair<float, float>> bezier;
 	for (int j = 0; j < 1000; j++) {
@@ -111,7 +105,7 @@ void HW8::Bezier(float x, float y, int state, bool dynamic) {
 		bezier.push_back(p);
 	}
 
-	drawPoint(bezier, 0);
+	drawPoint(bezier, 1.0f);
 
 	drawLine(coordinate);
 
@@ -129,7 +123,7 @@ void HW8::Bezier(float x, float y, int state, bool dynamic) {
 				point_[j] = p;
 			}
 			drawLine(point_);
-			drawPoint(point_, 1);
+			drawPoint(point_, 5.0f);
 		}
 
 		ratio += 1.0f / 1000;
