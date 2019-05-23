@@ -6,6 +6,7 @@
 #include "HW5/HW5.h"
 #include "HW6/HW6.h"
 #include "HW7/HW7.h"
+#include "HW8/HW8.h"
 #include "Camera.h"
 #include "shader.h"
 using namespace std;
@@ -14,6 +15,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
@@ -23,6 +25,8 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = screenWidth / 2.0f;
 float lastY = screenHeight / 2.0f;
 bool firstMouse = true;
+int state = 0;
+//double x_pos = 0.0, y_pos = 0.0;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -112,6 +116,10 @@ int main() {
 	float hw7x = -2.0f, hw7y = 4.0f, hw7z = -1.0f;
 	HW7 hw7 = HW7(screenWidth, screenHeight);
 
+	bool hw8Flag = false;
+	bool bezier = false;
+	HW8 hw8;
+
 	// ‰÷»æ—≠ª∑
 	while (!glfwWindowShouldClose(window)) {
 		float currentFrame = glfwGetTime();
@@ -126,7 +134,7 @@ int main() {
 		ImGui::NewFrame();
 
 		{
-			if (!hw4Flag && !hw3Flag && !hw5Flag && !hw6Flag && !hw7Flag) {
+			if (!hw4Flag && !hw3Flag && !hw5Flag && !hw6Flag && !hw7Flag && !hw8Flag) {
 				choose = -1;
 			}
 
@@ -136,27 +144,32 @@ int main() {
 			ImGui::RadioButton("HW5", &choose, 2);
 			ImGui::RadioButton("HW6", &choose, 3);
 			ImGui::RadioButton("HW7", &choose, 4);
+			ImGui::RadioButton("HW8", &choose, 5);
 
 			switch (choose) {
 			case 0:
 				hw3Flag = true;
-				hw4Flag = hw5Flag = hw6Flag = hw7Flag = false;
+				hw4Flag = hw5Flag = hw6Flag = hw7Flag = hw8Flag = false;
 				break;
 			case 1:
 				hw4Flag = true;
-				hw3Flag = hw5Flag = hw6Flag = hw7Flag = false;
+				hw3Flag = hw5Flag = hw6Flag = hw7Flag = hw8Flag = false;
 				break;
 			case 2:
 				hw5Flag = true;
-				hw3Flag = hw4Flag = hw6Flag = hw7Flag = false;
+				hw3Flag = hw4Flag = hw6Flag = hw7Flag = hw8Flag = false;
 				break;
 			case 3:
 				hw6Flag = true;
-				hw3Flag = hw4Flag = hw5Flag = hw7Flag = false;
+				hw3Flag = hw4Flag = hw5Flag = hw7Flag = hw8Flag = false;
 				break;
 			case 4:
 				hw7Flag = true;
-				hw3Flag = hw4Flag = hw5Flag = hw6Flag = false;
+				hw3Flag = hw4Flag = hw5Flag = hw6Flag = hw8Flag = false;
+				break;
+			case 5:
+				hw8Flag = true;
+				hw3Flag = hw4Flag = hw5Flag = hw6Flag = hw7Flag = false;
 				break;
 			default:
 				break;
@@ -237,6 +250,14 @@ int main() {
 			ImGui::SliderFloat("x", &hw7x, -10.0f, 10.0f);
 			ImGui::SliderFloat("y", &hw7y, -10.0f, 10.0f);
 			ImGui::SliderFloat("z", &hw7z, -10.0f, 10.0f);
+			ImGui::End();
+		}
+
+		if (hw8Flag) {
+			shaderProgram = hw8.getShaderProgram();
+			ImGui::Begin("HW8", &hw8Flag);
+			ImGui::Checkbox("Bezier Curve", &bezier);
+			ImGui::Checkbox("Dynamic", &dynamic);
 			ImGui::End();
 		}
 
@@ -325,6 +346,15 @@ int main() {
 			}
 		}
 
+		if (hw8Flag) {
+			if (bezier) {
+				glfwSetCursorPosCallback(window, mouse_callback);
+				glfwSetMouseButtonCallback(window, mouse_button_callback);
+				hw8.Bezier(lastX, lastY, state, dynamic);
+			}
+			state = 0;
+		}
+
 		
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -374,4 +404,24 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	camera.ProcessMouseScroll(yoffset);
+}
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+	if (action == GLFW_PRESS) 
+		switch (button) {
+		case GLFW_MOUSE_BUTTON_LEFT:
+			state = 1;
+			//cout << "Mosue left button clicked!" << endl;
+			break;
+		case GLFW_MOUSE_BUTTON_MIDDLE:
+			state = 2;
+			//cout << "Mosue middle button clicked!" << endl;
+			break;
+		case GLFW_MOUSE_BUTTON_RIGHT:
+			state = 3;
+			//cout << "Mosue right button clicked!" << endl;
+			break;
+		default:
+			return;
+		}
+	return;
 }
